@@ -13,4 +13,8 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="TextTitle" parent="TextAppearance.AppCompat.Title" />
+
+    <style name="TextBody" parent="TextAppearance.AppCompat.Body1" />
 </resources>

@@ -4,24 +4,27 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UiScreenPayload(
-    @SerialName("id") val id: String? = null,
-    @SerialName("components") val components: List<UiComponentPayload>? = null,
+data class UiResponse(
+    @SerialName("root_component") val rootComponent: UiComponentPayload? = null,
     @SerialName("data") val data: Map<String, String>? = null,
-    @SerialName("actions") val actions: Map<String, String>? = null,
-    @SerialName("events") val events: Map<String, UiEventPayload>? = null,
 )
 
 @Serializable
 data class UiComponentPayload(
     @SerialName("id") val id: String? = null,
     @SerialName("type") val type: String? = null,
+    @SerialName("children") val children: List<UiComponentPayload>? = null,
 )
 
 @Serializable
 data class UiEventPayload(
     @SerialName("event_name") val eventName: String? = null,
     @SerialName("event_properties") val eventProperties: Map<String, String>? = null,
+)
+
+@Serializable
+data class UiScreenPayload(
+    @SerialName("view_event") val viewEvent: UiEventPayload? = null,
 )
 
 @Serializable
@@ -34,6 +37,8 @@ data class UiTextPayload(
 data class UiButtonPayload(
     @SerialName("style") val style: String? = null,
     @SerialName("text") val text: String? = null,
+    @SerialName("action") val action: String? = null,
+    @SerialName("click_event") val clickEvent: UiEventPayload? = null,
 )
 
 @Serializable

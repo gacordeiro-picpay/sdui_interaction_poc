@@ -1,5 +1,7 @@
 package pic.poc.sdui.interaction.sdui.domain
 
+import android.util.Log
+
 sealed interface UiEvent {
     data class UserEvent(
         val eventName: String,
@@ -14,5 +16,6 @@ sealed interface UiEvent {
 class UiTracker {
     fun track(event: UiEvent) {
         // NoOp for now, but here we would use the proper tools to log each event
+        Log.d("DebugTag", "Tracking: $event")
     }
 }

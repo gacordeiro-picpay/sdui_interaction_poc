@@ -5,9 +5,7 @@ interface UiComponent
 data class UiScreen(
     val id: String,
     val components: List<UiComponent>,
-    val data: Map<String, Any>,
-    val actions: Map<String, String>,
-    val events: Map<String, UiEvent>,
+    val screenEvent: UiEvent,
 ) : UiComponent
 
 object UiDivider : UiComponent {
@@ -24,6 +22,7 @@ data class UiButton(
     val id: String,
     val style: String,
     val text: String,
+    val clickEvent: UiEvent,
 ) : UiComponent
 
 data class UiEdit(

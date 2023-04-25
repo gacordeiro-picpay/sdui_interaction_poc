@@ -11,24 +11,33 @@ import pic.poc.sdui.interaction.sdui.domain.UiScreen
 import pic.poc.sdui.interaction.sdui.domain.UiSwitch
 import pic.poc.sdui.interaction.sdui.domain.UiText
 
-fun UiScreenPayload?.toUiScreen(): UiScreen = takeIf(::isValid)?.run {
-    val data = data.orEmpty()
-    UiScreen(
-        id = id.orEmpty(),
-        components = components.orEmpty().map { it.toComponent(data[it.id].orEmpty()) },
-        data = data,
-        actions = actions.orEmpty(),
-        events = events.orEmpty().mapValues { it.value.toUiEvent() }
-    )
+fun UiResponse?.toUiScreen(): UiScreen = takeIf(::isValid)?.run {
+    if (data.isNullOrEmpty()) null
+    else rootComponent?.toUiScreenWith(data)
 } ?: throw UnsupportedComponentException(toString())
 
-fun UiComponentPayload.toComponent(jsonData: String): UiComponent = when (type) {
-    "UiDivider" -> UiDivider
-    "UiText" -> toUiTextWith(jsonData)
-    "UiButton" -> toUiButtonWith(jsonData)
-    "UiEdit" -> toUiEditWith(jsonData)
-    "UiSwitch" -> toUiSwitchWith(jsonData)
-    else -> throw UnsupportedComponentException(toString())
+internal fun UiComponentPayload.toUiScreenWith(
+    data: Map<String, String>,
+): UiScreen = safelyDecodeComponent {
+    val jsonData = data[id.orEmpty()].orEmpty()
+    val payload: UiScreenPayload = json.decodeFromString(jsonData)
+    return UiScreen(
+        id = id.orEmpty(),
+        components = children.orEmpty().map { it.toUiComponentWith(data) },
+        screenEvent = payload.viewEvent.toUiEvent(),
+    )
+}
+
+internal fun UiComponentPayload.toUiComponentWith(data: Map<String, String>): UiComponent {
+    val jsonData = data[id.orEmpty()].orEmpty()
+    return when (type) {
+        "UiText" -> toUiTextWith(jsonData)
+        "UiButton" -> toUiButtonWith(jsonData)
+        "UiEdit" -> toUiEditWith(jsonData)
+        "UiSwitch" -> toUiSwitchWith(jsonData)
+        "UiDivider" -> UiDivider
+        else -> throw UnsupportedComponentException(toString())
+    }
 }
 
 internal fun UiComponentPayload.toUiTextWith(jsonData: String): UiText = safelyDecodeComponent {
@@ -46,6 +55,7 @@ internal fun UiComponentPayload.toUiButtonWith(jsonData: String): UiButton = saf
         id = id.orEmpty(),
         style = payload.style.orEmpty(),
         text = payload.text.orEmpty(),
+        clickEvent = payload.clickEvent.toUiEvent(),
     )
 }
 
@@ -76,7 +86,10 @@ internal fun UiEventPayload?.toUiEvent(): UiEvent =
         )
     } ?: UiEvent.InvalidEvent("Invalid UiEvent received: ${toString()}")
 
-internal fun isValid(payload: UiScreenPayload?) =
+internal fun isValid(payload: UiResponse?) =
+    isValid(payload?.rootComponent) && payload?.data.orEmpty().isNotEmpty()
+
+internal fun isValid(payload: UiComponentPayload?) =
     payload != null && !payload.id.isNullOrBlank()
 
 internal fun isValid(payload: UiEventPayload?) =
