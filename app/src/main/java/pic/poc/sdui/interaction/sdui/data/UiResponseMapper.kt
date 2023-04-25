@@ -1,7 +1,6 @@
 package pic.poc.sdui.interaction.sdui.data
 
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import pic.poc.sdui.interaction.networking.json
 import pic.poc.sdui.interaction.sdui.domain.UiButton
 import pic.poc.sdui.interaction.sdui.domain.UiComponent
@@ -12,68 +11,59 @@ import pic.poc.sdui.interaction.sdui.domain.UiScreen
 import pic.poc.sdui.interaction.sdui.domain.UiSwitch
 import pic.poc.sdui.interaction.sdui.domain.UiText
 
-fun UiResponse?.toComponents(): List<UiComponent> =
-    this?.components
-        .orEmpty()
-        .map { it.toComponent() }
-
-fun UiComponentPayload.toComponent(): UiComponent = when (name) {
-    "UiScreen" -> jsonData.toUiScreen()
-    "UiDivider" -> jsonData.toUiDivider()
-    "UiText" -> jsonData.toUiText()
-    "UiButton" -> jsonData.toUiButton()
-    "UiEdit" -> jsonData.toUiEdit()
-    "UiSwitch" -> jsonData.toUiSwitch()
-    else -> throw UnsupportedComponentException(this)
-}
-
-internal fun String?.toUiScreen(): UiScreen = safelyDecodeComponent {
-    val payload: UiScreenPayload = json.decodeFromString(this)
-    return UiScreen(
-        id = payload.id.orEmpty(),
-        children = payload.children.orEmpty().map { it.toComponent() },
-        screenEvent = payload.screenEvent.toUiEvent(),
+fun UiScreenPayload?.toUiScreen(): UiScreen = takeIf(::isValid)?.run {
+    val data = data.orEmpty()
+    UiScreen(
+        id = id.orEmpty(),
+        components = components.orEmpty().map { it.toComponent(data[it.id].orEmpty()) },
+        data = data,
+        actions = actions.orEmpty(),
+        events = events.orEmpty().mapValues { it.value.toUiEvent() }
     )
+} ?: throw UnsupportedComponentException(toString())
+
+fun UiComponentPayload.toComponent(jsonData: String): UiComponent = when (type) {
+    "UiDivider" -> UiDivider
+    "UiText" -> toUiTextWith(jsonData)
+    "UiButton" -> toUiButtonWith(jsonData)
+    "UiEdit" -> toUiEditWith(jsonData)
+    "UiSwitch" -> toUiSwitchWith(jsonData)
+    else -> throw UnsupportedComponentException(toString())
 }
 
-internal fun String?.toUiDivider(): UiComponent {
-    return UiDivider
-}
-
-internal fun String?.toUiText(): UiText = safelyDecodeComponent {
-    val payload: UiTextPayload = json.decodeFromString(this)
+internal fun UiComponentPayload.toUiTextWith(jsonData: String): UiText = safelyDecodeComponent {
+    val payload: UiTextPayload = json.decodeFromString(jsonData)
     return UiText(
-        type = payload.type.orEmpty(),
+        id = id.orEmpty(),
+        style = payload.style.orEmpty(),
         text = payload.text.orEmpty(),
     )
 }
 
-internal fun String?.toUiButton(): UiButton = safelyDecodeComponent {
-    val payload: UiButtonPayload = json.decodeFromString(this)
+internal fun UiComponentPayload.toUiButtonWith(jsonData: String): UiButton = safelyDecodeComponent {
+    val payload: UiButtonPayload = json.decodeFromString(jsonData)
     return UiButton(
-        id = payload.id.orEmpty(),
-        type = payload.type.orEmpty(),
+        id = id.orEmpty(),
+        style = payload.style.orEmpty(),
         text = payload.text.orEmpty(),
-        action = payload.action.orEmpty(),
-        clickEvent = payload.clickEvent.toUiEvent(),
     )
 }
 
-internal fun String?.toUiEdit(): UiEdit = safelyDecodeComponent {
-    val payload: UiEditPayload = json.decodeFromString(this)
+internal fun UiComponentPayload.toUiEditWith(jsonData: String): UiEdit = safelyDecodeComponent {
+    val payload: UiEditPayload = json.decodeFromString(jsonData)
     return UiEdit(
-        id = payload.id.orEmpty(),
-        type = payload.type.orEmpty(),
+        id = id.orEmpty(),
+        style = payload.style.orEmpty(),
         text = payload.text.orEmpty(),
         mask = payload.mask.orEmpty(),
     )
 }
 
-internal fun String?.toUiSwitch(): UiSwitch = safelyDecodeComponent {
-    val payload: UiSwitchPayload = json.decodeFromString(this)
+internal fun UiComponentPayload.toUiSwitchWith(jsonData: String): UiSwitch = safelyDecodeComponent {
+    val payload: UiSwitchPayload = json.decodeFromString(jsonData)
     return UiSwitch(
-        id = payload.id.orEmpty(),
-        type = payload.type.orEmpty(),
+        id = id.orEmpty(),
+        style = payload.style.orEmpty(),
         isChecked = payload.isChecked ?: false,
     )
 }
@@ -86,19 +76,23 @@ internal fun UiEventPayload?.toUiEvent(): UiEvent =
         )
     } ?: UiEvent.InvalidEvent("Invalid UiEvent received: ${toString()}")
 
+internal fun isValid(payload: UiScreenPayload?) =
+    payload != null && !payload.id.isNullOrBlank()
+
 internal fun isValid(payload: UiEventPayload?) =
     payload != null && !payload.eventName.isNullOrBlank()
 
-internal class UnsupportedComponentException(payload: UiComponentPayload) :
+internal class UnsupportedComponentException(payload: String) :
     IllegalStateException("Invalid component received: $payload")
 
 internal class InvalidComponentDataException(name: String, jsonData: String?) :
     IllegalStateException("Invalid jsonData for $name received: $jsonData")
 
-private inline fun <reified T : UiComponent> String?.safelyDecodeComponent(decode: String.() -> T): T =
-    runCatching {
-        check(this != null)
-        decode()
-    }.getOrElse {
-        throw InvalidComponentDataException(T::class.simpleName.orEmpty(), this)
-    }
+private inline fun <reified T : UiComponent> UiComponentPayload?.safelyDecodeComponent(
+    decode: () -> T
+): T = runCatching {
+    check(this != null)
+    decode()
+}.getOrElse {
+    throw InvalidComponentDataException(T::class.simpleName.orEmpty(), "$this")
+}

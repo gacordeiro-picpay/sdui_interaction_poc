@@ -4,8 +4,10 @@ interface UiComponent
 
 data class UiScreen(
     val id: String,
-    val children: List<UiComponent>,
-    val screenEvent: UiEvent,
+    val components: List<UiComponent>,
+    val data: Map<String, Any>,
+    val actions: Map<String, String>,
+    val events: Map<String, UiEvent>,
 ) : UiComponent
 
 object UiDivider : UiComponent {
@@ -13,27 +15,26 @@ object UiDivider : UiComponent {
 }
 
 data class UiText(
-    val type: String,
+    val id: String,
+    val style: String,
     val text: String,
 ) : UiComponent
 
 data class UiButton(
     val id: String,
-    val type: String,
+    val style: String,
     val text: String,
-    val action: String,
-    val clickEvent: UiEvent,
 ) : UiComponent
 
 data class UiEdit(
     val id: String,
-    val type: String,
+    val style: String,
     val text: String,
     val mask: String,
 ) : UiComponent
 
 data class UiSwitch(
     val id: String,
-    val type: String,
+    val style: String,
     val isChecked: Boolean,
 ) : UiComponent
