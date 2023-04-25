@@ -1,0 +1,36 @@
+{
+  "root_component": {
+    "id": "screen_id",
+    "type": "UiScreen",
+    "children": [
+      {
+        "id": "title_id",
+        "type": "UiText"
+      },
+      {
+        "id": "div_id",
+        "type": "UiDivider"
+      },
+      {
+        "id": "switch_id",
+        "type": "UiSwitch"
+      },
+      {
+        "id": "edit_id",
+        "type": "UiEdit"
+      },
+      {
+        "id": "button_id",
+        "type": "UiButton"
+      }
+    ]
+  },
+  "data": {
+    "screen_id" : "{\"view_event\":{\"event_name\":\"ScreenView\",\"event_properties\":{\"screen_name\":\"Example Screen\",\"business_context\":\"Example\"}}}",
+    "title_id" : "{\"style\":\"title\",\"text\":\"T\u00EDtulo\"}",
+    "edit_id" : "{\"style\":\"filled\",\"text\":\"\",\"mask\":\"######\"}",
+    "switch_id" : "{\"style\":\"primary\",\"is_checked\":false}",
+    "button_id" : "{\"style\":\"primary\",\"text\":\"Ok\",\"action\":\"TOAST:Click!\",\"click_event\":{\"event_name\":\"Button Clicked\",\"event_properties\":{\"screen_name\":\"Example Screen\",\"business_context\":\"Example\",\"button_name\":\"OK\"}}}",
+    "additional_data": "{\"quote_code\":12345,\"quote_token\":\"abcde-fghij-klmno\"}"
+  }
+}
