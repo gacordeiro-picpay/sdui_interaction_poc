@@ -55,6 +55,7 @@ internal fun UiComponentPayload.toUiButtonWith(jsonData: String): UiButton = saf
         id = id.orEmpty(),
         style = payload.style.orEmpty(),
         text = payload.text.orEmpty(),
+        action = payload.action.orEmpty(),
         clickEvent = payload.clickEvent.toUiEvent(),
     )
 }

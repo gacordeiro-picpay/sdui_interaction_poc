@@ -22,6 +22,7 @@ data class UiButton(
     val id: String,
     val style: String,
     val text: String,
+    val action: String,
     val clickEvent: UiEvent,
 ) : UiComponent
 

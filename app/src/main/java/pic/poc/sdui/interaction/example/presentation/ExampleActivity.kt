@@ -5,6 +5,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_FILLED
@@ -36,11 +37,20 @@ class ExampleActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[ExampleViewModel::class.java]
         viewModel.state.observe(this, ::handleState)
+        viewModel.actions.observe(this, ::handleActions)
     }
 
     private fun handleState(state: ExampleViewState) {
         binding.container.removeAllViews()
         state.components.forEach(::addView)
+    }
+
+    private fun handleActions(action: ExampleViewAction) = when (action) {
+        is ExampleViewAction.ShowToast -> handleToast(action.message)
+    }
+
+    private fun handleToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun addView(component: UiComponent) = when (component) {

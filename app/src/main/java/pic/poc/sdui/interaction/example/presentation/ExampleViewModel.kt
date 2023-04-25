@@ -19,6 +19,8 @@ class ExampleViewModel : ViewModel() {
     private val tracker = UiTracker()
     private val _state = MutableLiveData<ExampleViewState>()
     val state: LiveData<ExampleViewState> = _state
+    private val _actions = MutableLiveData<ExampleViewAction>()
+    val actions: LiveData<ExampleViewAction> = _actions
 
     private val useCase = GetExampleUseCase(
         repository = ExampleRepositoryImpl(
@@ -38,6 +40,7 @@ class ExampleViewModel : ViewModel() {
     fun onButtonClicked(component: UiButton) {
         log("onButtonClicked: $component")
         tracker.track(component.clickEvent)
+        handle(component.action)
     }
 
     fun afterTextChanged(component: UiEdit, text: String) {
@@ -48,9 +51,26 @@ class ExampleViewModel : ViewModel() {
         log("onSwitchToggled: $isChecked")
     }
 
+    private fun handle(action: String) {
+        val command = action.substringBefore(":")
+        val data = action.substringAfter(":")
+        when (command) {
+            "TOAST" -> handleToast(data)
+            else -> log("Unsupported action: $action")
+        }
+    }
+
+    private fun handleToast(message: String) {
+        _actions.value = ExampleViewAction.ShowToast(message)
+    }
+
     private fun log(message: String) = Log.d("DebugTag", message)
 }
 
 data class ExampleViewState(
     val components: List<UiComponent>
 )
+
+sealed interface ExampleViewAction {
+    data class ShowToast(val message: String) : ExampleViewAction
+}
